@@ -63,6 +63,43 @@ module.exports = function(app){
         
     });
     
+    app.delete('/api/project/:id', function(req, res){
+        
+        var id = req.params.id;
+    
+        var Project = mongoose.model('Project');
+        
+        Project.findByIdAndRemove(id, function(err, doc){
+           
+            if(!err){
+                res.sendStatus(200);
+            }else{
+                res.sendStatus(400);
+            }
+            
+        });
+        
+    });
+    
+    app.put('/api/project/:id', function(req, res){
+       
+        var id = req.params.id;
+        
+        var Project = mongoose.model('Project');
+        
+        Project.findByIdAndUpdate(id, req.body, function(err, doc){
+           
+            if(!err){
+                res.send(doc);
+            }else{
+                console.log(err);
+                res.sendStatus(400);
+            }
+            
+        });
+        
+    });
+    
     app.post('/api/project', function(req, res){
        
         var data = req.body;
@@ -80,7 +117,6 @@ module.exports = function(app){
             }
             
         });
-        
         
     });
     

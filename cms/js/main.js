@@ -1,5 +1,8 @@
+var selectedProject;
+
+
 $.get('/api/projects', function(projects){
-   
+    
     console.log(projects);
     
     for(var i=0;i<projects.length;i++){
@@ -9,10 +12,11 @@ $.get('/api/projects', function(projects){
         renderProjectRow(project);
         
     }
-    
-    
+
 });
 
+
+// GET POST PUT DELETE
 function renderProjectRow(project){
     
     var $tr = $('<tr>');
@@ -20,9 +24,40 @@ function renderProjectRow(project){
     var $td2 = $('<td>', { text : project.postedOnDate });
     var $td3 = $('<td>');
 
-    var $deleteButton = $('<div>', { text:'Delete', class:'btn btn-xs btn-danger' });
+    var $deleteButton = $('<div>', { text:'Delete', class:'btn btn-xs btn-danger', id:project._id });
     var $editButton = $('<div>', { text:'Edit', class:'btn btn-xs btn-warning' });
     var $publishButton = $('<div>', { text:'Publish', class:'btn btn-xs btn-success' });
+
+    $deleteButton.on('click', function(){
+       
+        var id = $(this).attr('id');
+        var c = confirm('Are you sure?');
+        
+        if(c){
+            // trigger a DELETE request to /api/project/:id
+            $.ajax({
+                type:'DELETE',
+                url:'/api/project/'+id,
+                success:function(){
+                    $tr.remove();
+                }
+            });
+        }
+    });
+    
+    $editButton.on('click', function(){
+        
+        selectedProject = project;
+        
+        var $title = $('#title-input');
+        var $descr = $('#descr-input');
+        
+        $title.val(project.title);
+        $descr.val(project.description);
+        
+        $('#project-modal').modal('show');
+        
+    });
 
     $td3.append($deleteButton,' ', $editButton,' ', $publishButton);
 
@@ -38,7 +73,8 @@ $('#add-new-button').on('click', function(){
     
 });
 
-$('#create-button').on('click', function(){
+// When user presses on create button in the modal
+$('#confirm-button').on('click', function(){
     
     var $title = $('#title-input');
     var $descr = $('#descr-input');
@@ -51,14 +87,32 @@ $('#create-button').on('click', function(){
         description : descrValue
     };
     
-    // /api/project
-    $.post('/api/project', projectData, function(project){
-       
-        console.log('Project created');
-        console.log(project);
-        renderProjectRow(project);
+    if(selectedProject){
         
-    });
+        $.ajax({
+                type:'PUT',
+                data:projectData,
+                url:'/api/project/'+selectedProject._id,
+                success:function(){
+                    
+                }
+            });
+        
+        selectedProject = null;
+        $('#project-modal').modal('hide');
+        
+    }else{
+        
+        // /api/project
+        $.post('/api/project', projectData, function(project){
+
+            console.log('Project created');
+            console.log(project);
+            renderProjectRow(project);
+
+        });
+        
+    }
     
     $title.val('');
     $descr.val('');
